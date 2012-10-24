@@ -1,0 +1,147 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+# todo port reservation
+Listen 23003
+
+<IfModule mpm_prefork_module>
+    StartServers         16
+    MinSpareServers      16
+    MaxSpareServers      64
+    ServerLimit          256
+    MaxClients           256
+    MaxRequestsPerChild  1000
+</IfModule>
+
+<IfModule !mod_mod_wsgi.c>
+    LoadModule wsgi_module modules/mod_wsgi.so
+</IfModule>
+
+<% if server_env != "sandbox" -%>
+<VirtualHost *:80>
+    ServerName crichton-test.dev.domain.com
+    Redirect permanent / https://crichton-test.dev.domain.com/
+</VirtualHost>
+<% end -%>
+
+<VirtualHost *:23003>
+<% if server_env == "sandbox" -%>
+    ServerName crichton.sandbox
+<% else -%>
+    ServerName crichton-test.dev.domain.com
+<% end -%>
+
+    #Include certcheck/developers.conf
+    <Location />
+      SSLRequire %{SSL_CLIENT_I_DN_CN} in { "Development Staff CA", "Production CA", "Certificate Authority", "Development Servers and Services CA"}
+    </Location>
+    ErrorLog "/var/log/httpd/crichton.log"
+<% if server_env == "sandbox" -%>
+    LogLevel info
+<% else -%>
+    LogLevel warn
+<% end -%>
+
+    SSLEngine       On
+    SSLVerifyClient Require
+    SSLVerifyDepth  3
+    SSLProtocol all -SSLv2
+    SSLCipherSuite ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM
+    SSLOptions +FakeBasicAuth +StdEnvVars
+
+<% if server_env == "sandbox" -%>
+    SSLCertificateFile /etc/pki/tls/certs/localhost.crt
+    SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
+<% else -%>
+    SSLCertificateFile      /etc/crichton-test.dev.domain.com.pem
+    SSLCertificateKeyFile   /etc/crichton-test.dev.domain.com.key
+<% end -%>
+
+    DocumentRoot    /data/crichton/html
+
+    # Set ZXTM-style headers
+    #-----------------------
+    # initialize the special headers to a blank value to avoid http header forgeries
+    RequestHeader set SSLClientCertSubject            ""
+    RequestHeader set SSLClientCertIssuer             ""
+    RequestHeader set SSLSessionID                    ""
+    RequestHeader set SSLClientCertSerialNumber       ""
+    RequestHeader set SSLClientCertStatus             ""
+    RequestHeader set SSLClientCertVersion            ""
+    RequestHeader set SSLClientCertNotValidBefore     ""
+    RequestHeader set SSLClientCertNotValidAfter      ""
+    RequestHeader set SSLClientCertSubjectPublicKey   ""
+    RequestHeader set SSLClientCertSignatureAlgorithm ""
+    RequestHeader set SSLClientCipher                 ""
+    <Location />
+        RequestHeader set SSLClientCertSubject            "Email=%{SSL_CLIENT_S_DN_Email}s, CN=%{SSL_CLIENT_S_DN_CN}s, OU=%{SSL_CLIENT_S_DN_OU}s, O=%{SSL_CLIENT_S_DN_O}s, L=%{SSL_CLIENT_S_DN_L}s, C=%{SSL_CLIENT_S_DN_C}s"
+        RequestHeader set SSLClientCertIssuer             "C=%{SSL_CLIENT_I_DN_C}s, L=%{SSL_CLIENT_I_DN_L}s, O=%{SSL_CLIENT_I_DN_O}s, OU=%{SSL_CLIENT_I_DN_OU}s, CN=%{SSL_CLIENT_I_DN_CN}s"
+        RequestHeader set SSLSessionID                    "%{SSL_SESSION_ID}s"
+        RequestHeader set SSLClientCertSerialNumber       "%{SSL_CLIENT_M_SERIAL}s"
+        RequestHeader set SSLClientCertStatus             "OK"
+        RequestHeader set SSLClientCertVersion            "%{SSL_CLIENT_M_VERSION}s"
+        RequestHeader set SSLClientCertNotValidBefore     "%{SSL_CLIENT_V_START}s"
+        RequestHeader set SSLClientCertNotValidAfter      "%{SSL_CLIENT_V_END}s"
+        RequestHeader set SSLClientCertSubjectPublicKey   "%{SSL_CLIENT_A_KEY}s"
+        RequestHeader set SSLClientCertSignatureAlgorithm "%{SSL_CLIENT_A_SIG}s"
+        RequestHeader set SSLClientCipher                 "%{SSL_CIPHER}s"
+    </Location>
+    # END setting ZXTM-style headers
+
+    <Location />
+        SSLRequire %{SSL_CLIENT_I_DN_CN} !~ m/^Some String/
+    </Location>
+    
+    
+    Alias /media/ /usr/lib/python2.4/site-packages/django/contrib/admin/media/
+    <Directory /usr/lib/python2.4/site-packages/django/contrib/admin/media>
+        Order deny,allow
+        Allow from all
+    </Directory>
+
+    # todo do not serve any static files through django
+
+    WSGIScriptAlias / /usr/local/crichtonweb/crichtonweb.wsgi
+
+</VirtualHost>
+
+Listen 127.0.0.1:8000
+<VirtualHost 127.0.0.1:8000>
+<% if server_env == "sandbox" -%>
+    ServerName crichton.sandbox
+<% else -%>
+    ServerName crichton-test.dev.domain.com
+<% end -%>
+
+    ErrorLog "/var/log/httpd/crichton.log"
+<% if server_env == "sandbox" -%>
+    LogLevel info
+<% else -%>
+    LogLevel warn
+<% end -%>
+
+    DocumentRoot    /data/crichton/html
+
+    Alias /media/ /usr/lib/python2.4/site-packages/django/contrib/admin/media/
+    <Directory /usr/lib/python2.4/site-packages/django/contrib/admin/media>
+        Order deny,allow
+        Allow from all
+    </Directory>
+
+    # todo do not serve any static files through django
+
+    WSGIScriptAlias / /usr/local/crichtonweb/crichtonweb.wsgi
+</VirtualHost>

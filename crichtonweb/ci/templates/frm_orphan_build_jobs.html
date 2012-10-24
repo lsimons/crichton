@@ -1,0 +1,66 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+<form action="/admin/frontend/frm_orphan_build_jobs" method="post" id="frm_orphan_build_jobs">{% csrf_token %}
+{{ form.non_field_errors }}
+<table>
+  <thead>
+    <tr>
+     <th><label for='products'>Product</label></th>
+      <th><label for='buildjob'>Build Job</label></th>
+</tr>
+    </thead>
+  <tbody>
+    <tr>
+    <td>
+      <div class="fieldWrapper">
+        {{ form.product.errors }}
+        {{ form.product }}
+      </div>
+      </td>
+      <td>
+      <div class="fieldWrapper">
+       {{ form.build_jobs.errors }}
+       {{ form.build_jobs }}
+    </div>
+      </td>
+     </tr>
+      <tr>
+     <td colspan=2><input type="submit" value="Link Build Job to Product"/></td>
+    </tr>
+ </tbody>
+ </table>
+</form>
+
+<script>
+$(document).ready(function() {
+  var options = {
+    success: handleResponse,
+  };
+  $('#frm_orphan_build_jobs').ajaxForm(options);
+
+  function handleResponse(json, statusText, xhr, $form) {
+    debugger;
+    if (json.status == "ok") {
+      // if change made OK, then refresh the page
+      location.reload();
+    } else {
+      // if error in form, then redisplay the form
+      $('#div_orphan_build_jobs').html(json.html);
+    }
+  }
+ });
+</script>

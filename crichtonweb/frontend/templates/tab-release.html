@@ -1,0 +1,107 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+{% load myfrontend %}
+{% get_releases_for_filter releases %}
+
+<h2>Releases</h2>
+<div class="sk-panel">
+    {% if releases %}
+        <table id="sk-app-tbl" class="jtable">
+            <thead>
+                <tr>
+                    <th class="ui-state-default">Release</th>
+                    <!--<th class="ui-state-default">Actions</th>-->
+                </tr>
+            </thead>
+            <tbody>
+                {% for rel in releases %}
+                    <tr class="sk-rel" id="sk-rel-{{rel.id}}">
+                        <td><strong><a href="javascript:open_admin('{{rel.get_absolute_url}}')">{{rel.product.display_name}}
+                            {{rel.version}}</a></strong></td>
+                        <!--<td><a href="{{rel.get_view_url}}">TODO:view</a>,
+                            <a href="{{rel.get_absolute_url}}">edit</a></td>-->
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="sk-panel-content">
+            <p style="font-style:italic;">No releases matching filter.</p>
+        </div>
+    {% endif %}
+    <div class="sk-help">
+        <p>A release represents a product, which consists of a set of RPM packages. Each release should have a unique version number determined by you and your team. You can start defining a release before you know the precise versions of all the packages it will contain, or even all the packages that it will eventually consist of. However, your release cannot be deployed before it is completely and accurately defined e.g. associated with existing RPM packages.<a href="https://confluence.dev.domain.com/display/socom/crichton+user+guide#crichtonuserguide-Releasesanddeployments">Learn more about releases</a>.</p>
+    </div>
+    <div id="sk-app-tools" class="sk-tools">
+        <form method="link" action="/admin/release/release/add" style="display: inline-block">
+            <input type="hidden" name="redirecturl" value="/#tab-release">
+            <input type="submit" value="Define New Release">
+        </form>
+        <form method="link" action="admin/release/release/clone/" style="display: inline-block">
+            <input type="hidden" name="redirecturl" value="/#tab-release">
+            <input type="submit" value="Clone Existing Release">
+        </form>
+    </div>
+</div>
+
+{% load myfrontend %}
+{% get_deployment_requests_for_filter deployment_requests %}
+
+<h2>Deployment requests</h2>
+<div class="sk-panel">
+    {% if deployment_requests %}
+        <table id="sk-app-tbl" class="jtable">
+            <thead>
+                <tr>
+                    <th class="ui-state-default">Deployment</th>
+                    <th class="ui-state-default">Jira</th>
+                    <!--<th class="ui-state-default">Actions</th>-->
+                </tr>
+            </thead>
+            <tbody>
+                {% for dep in deployment_requests %}
+                    <tr class="sk-dep" id="sk-dep-{{dep.id}}">
+                        <td><strong><a href="javascript:open_admin('{{dep.get_absolute_url}}')">{{dep.release.product.display_name}} 
+                            {{dep.release.version}} -&gt; {{dep.environment}}</a></strong></td>
+                        <td><a href="{{dep.ops_issue.remote_url}}">{{dep.ops_issue}}</a></td>
+                        <!--<td><a href="{{dep.get_absolute_url}}">edit</a></td>-->
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="sk-panel-content">
+            <p style="font-style:italic;">No deployment requests matching filter.</p>
+        </div>
+    {% endif %}
+    <div class="sk-help">
+        <p>A deployment is the act of taking a release and deploying it to an environment. A deployment request is from the product owner / release manager to the operations team, asking them to take care of the deployment. A deployment request should always have an <a href="https://jira.dev.domain.com/browse/OPS">OPS</a> jira associated with it.<a href="https://confluence.dev.domain.com/display/socom/crichton+user+guide#crichtonuserguide-Releasesanddeployments">Learn more about deployments</a>.</p>
+    </div>
+    <div id="sk-app-tools" class="sk-tools">
+        <form method="link" action="/admin/release/deploymentrequest/add">
+            <input type="hidden" name="redirecturl" value="/#tab-release">
+            <input type="submit" value="Request new Deployment">
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("input:submit").button();
+        $("button").button();
+    });
+</script>

@@ -1,0 +1,28 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+<?xml version="1.0" encoding="utf-8"?>
+<core:customfield
+        xmlns="urn:x-ns:hotjazz:jirarpc"
+        xmlns:hotjazz="urn:x-ns:hotjazz"
+        hotjazz:type="model"
+        xmlns:core="urn:x-ns:hotjazz:jirarpc">
+    <core:name hotjazz:type="CharField">test_instructions_sanity_checks</core:name>
+    <core:jira_name hotjazz:type="CharField">customfield_10130</core:jira_name>
+    <core:type hotjazz:type="CharField">text</core:type>
+    <core:helptext hotjazz:type="CharField">URLs / test steps for the implementation group to verify the change was successful</core:helptext>
+    <core:order hotjazz:type="SmallIntegerField">160</core:order>
+</core:customfield>

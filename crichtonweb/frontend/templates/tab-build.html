@@ -1,0 +1,102 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+{% load myfrontend %}
+{% get_build_jobs_for_filter build_jobs %}
+{% get_latest_build_results_for_filter latest_build_results %}
+{% get_status status crichtonCronJobStatus index_hudson %}
+
+<div class="sk-panel">
+    {% if build_jobs %}
+  <table class="jtable">
+    <tr>
+      <th class="ui-state-default">Build Job</th>
+      <th class="ui-state-default">CI Server</th>
+      <th class="ui-state-default">Last Build</th>
+      <th class="ui-state-default">Last Build Status</th>
+      <th class="ui-state-default">Last Build Date</th>
+      <th class="ui-state-default">Actions</th>
+    </tr>
+{% regroup latest_build_results by job.product as product_list %}
+{% for product in product_list %}          
+            <thead>
+              <tr>
+                <th class="ui-state-default" colspan="6">
+                  <a href="{{product.grouper.get_absolute_url}}">{{product.grouper|upper}}</a>
+                </th>
+              </tr>
+           </thead>
+
+            <tbody>
+                {% for result in product.list %}
+                    <tr>
+                        <td><a href="{{result.get_absolute_url}}">{{result.job.name}}</a></td>
+                       <td>{{result.job.build_server}}</td>
+                        <td>#{{result.build_number}}</td>
+                        <td>{{result.succeeded|yesno:"OK,Failed"}}</td>
+                        <td>{{result.finished_at}}</td>
+                        <td><a href="{{result.job.get_absolute_url}}">edit</a></a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+{% endfor %}            
+        </table> 
+    {% else %}
+        <div class="sk-panel-content">
+            <p style="font-style:italic;">No build jobs matching filter.</p>
+        </div>
+        <div class="sk-help">
+            This list shows the latest known build result for each build job
+            that's associated with all the products matching the current
+            filter.
+        </div>
+    {% endif %}
+</div>
+
+<div class="sk-panel">
+    <div class="sk-panel-content">
+        <p>
+            Build jobs aren't automatically associated with a product. To make an
+            association, select a Product and then choose a Build Job.</p>
+        <p>
+            The 'Product' and 'Build Job' fields both use autocomplete to build the
+            list of available options, so just start typing.
+        </p>
+        <div id="div_orphan_build_jobs">
+            {% load ci_tags %}
+            {% orphan_build_jobs_form %}
+        </div>
+    </div>
+</div>
+
+<div class="sk-panel">
+    <div class="sk-panel-content" id="orphaned-build-list">
+        <button onclick="$('#orphaned-build-list').load('/admin/frontend/load_orphaned_builds')">Show all build jobs without products</button>
+    </div>
+</div>
+
+<div class="sk-panel">
+    <div class="sk-panel-content">
+        We last completed a hudson index on [{{status.date|date:"M j \a\t H:i"|default:"Not available"}}].
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("input:submit").button();
+        $("button").button();
+    });
+</script>

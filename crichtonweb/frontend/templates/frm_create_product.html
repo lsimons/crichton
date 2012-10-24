@@ -1,0 +1,38 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+<!-- does not currently seem to be in actual/active use anywhere, should probably go -->
+<form id="frm_create_product" action="/admin/frontend/frm_save_product/{{id}}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Save"/>
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var options = {
+            target: '#div_create_product',
+            replaceTarget: false,
+            success: function(responseText, statusText, xhr, elem) {
+                // close dialog if finished
+                // refresh table
+                debugger;
+                alert('done');
+            },
+        };
+        $('#frm_create_product').ajaxForm(options);
+    });
+</script>

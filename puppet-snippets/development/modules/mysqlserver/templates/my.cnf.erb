@@ -1,0 +1,85 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+[mysqld]
+socket=/var/lib/mysql/mysql.sock
+user=mysql
+
+max_connections      = 2048
+connect_timeout      = 10
+
+default_storage_engine = INNODB
+default_character_set  = utf8
+
+max_allowed_packet   = 128M
+table_cache          = 256
+sort_buffer_size     = 1M
+read_buffer_size     = 1M
+read_rnd_buffer_size = 4M
+
+thread_concurrency   = 8
+thread_cache_size    = 8
+
+datadir         = /data/mysql/db
+
+# 20110228 - DMI uses SSL with client certs for MySQL, disable
+# ssl-capath = /etc/ca
+# ssl-cert   = /etc/<%= hostname %>.<%= domain %>.pem
+# ssl-key    = /etc/<%= hostname %>.<%= domain %>.key
+
+key_buffer                      = 64M
+query_cache_size                = <%= query_cache_size %>M
+innodb_buffer_pool_size         = <%= innodb_buffer_pool_size %>M
+innodb_additional_mem_pool_size = 20M
+innodb_log_file_size            = 64M
+innodb_log_buffer_size          = 8M
+innodb_lock_wait_timeout        = 50
+innodb_support_xa               = 1
+innodb_flush_log_at_trx_commit  = 1
+innodb_file_per_table
+
+<% if replication %>
+sync_binlog                    = 1
+log_slave_updates              = 1
+slave-net-timeout              = 60
+#skip_slave_start              = 1
+auto_increment_increment       = 2
+auto_increment_offset          = 1
+server-id                      = <%= server_id %>
+log-bin                        = /data/mysql/log/bin/master-bin
+log-bin-index                  = /data/mysql/log/bin/master-bin.index
+expire_logs_days               = 7
+relay-log                      = /data/mysql/log/relay/relay-bin
+relay-log-info-file            = /data/mysql/log/relay/relay-log.info
+relay-log-index                = /data/mysql/log/relay/relay-bin.index
+slave_net_timeout              = 60
+relay_log_purge                = 1
+<% end %>
+
+# report-host                    = 
+# report-port                    = 
+     
+[mysql.server]
+user=mysql
+basedir=/var/lib
+
+[mysqld_safe]
+log-error=/var/log/mysqld.log
+
+[mysql]
+prompt = "\\u@\\d>\_"
+default_character_set  = utf8
+

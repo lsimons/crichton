@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+svn export --force http://django-ajax-selects.googlecode.com/svn/trunk/ajax_select
+svn add ajax_select
+svn status

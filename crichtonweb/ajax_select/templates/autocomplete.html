@@ -1,0 +1,15 @@
+{% load i18n %}
+<input type="text" placeholder="search" name="{{ name }}" id="{{ html_id }}" value="{{ current_name }}" {{ extra_attrs }} />
+{% block help %}{# {% if help_text %}<p class="help">{{ help_text }}</p>{% endif %} #}{% endblock %}
+<script type="text/javascript">
+jQuery(document).ready(function($){
+	$("#{{html_id}}").autocomplete({
+		source: '{{lookup_url}}',
+		select: receiveResult,
+	});
+	function receiveResult(event, ui) {
+		$('#{{ html_id }}').val(ui.item.value);
+		$('#{{ html_id }}').trigger("added");
+	}
+});
+</script>

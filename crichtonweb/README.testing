@@ -1,0 +1,44 @@
+crichtonTestCase:
+==============
+
+To encourage the use of a consistent interface across the models, I've subclassed TestCase to provide a class with a run_std_tsts() method. This checks for the existence of the 
+- get_absolute_url
+- get_link
+- get_api_url
+methods in a model. It also checks to see whether the endpoint provided by the _url methods is reachable.
+
+create_tst_XXX
+==============
+
+In the various <module>/tests.py files, I've provided standard methods
+for creating a test object of each model type. 
+
+e.g. create_tst_person, create_tst_product.
+
+These currently use a random number to allow re-use; a better alternative would be to use a proper generate function.
+
+HUDSON
+======
+
+To setup Hudson to run unit tests and do coverage checking, you'll need:
+- coverage
+- nose
+- django-nose
+
+Add this as a build step in Hudson.
+
+coverage erase
+coverage -x ./manage.py test
+PYTHONPATH=. DJANGO_SETTINGS_MODULE=settings coverage run --append /usr/bin/nosetests --with-doctest core/models/
+coverage xml
+
+Add the Cobertura Coverage plugin, and switch on "Publish Cobertura Coverage Report".
+Add this to the field "Cobertura xml report pattern"
+
+**/coverage.xml
+
+If the build breaks, this config will pick up the build failure and not produce the coverage report.
+
+If the build succeeds, you'll get the coverage report.
+
+# eof

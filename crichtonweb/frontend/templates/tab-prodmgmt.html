@@ -1,0 +1,81 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+{% load myfrontend %}
+{% get_products_for_filter products %}
+
+<div class="sk-panel">
+    {% if products %}
+        <table id="sk-prod-tbl" class="jtable">
+            <thead>
+                <tr>
+                    <th class="ui-state-default">Product</th>
+                    <th class="ui-state-default">Status</th>
+                    <th class="ui-state-default">Owner</th>
+                    <th class="ui-state-default">Jira</th>
+                    <th class="ui-state-default">Applications</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr class="sk-prod" id="sk-prod-{{product.id}}">
+                        <td><strong><a href="javascript:open_admin('{{product.get_absolute_url}}')">{{product.display_name}}</a></strong></td>
+                        <td>{{product.status}}</td>
+                        <td><a href="{% if product.owner.email %}mailto:{{product.owner.email}}{% else %}{{product.owner.get_absolute_url}}{% endif %}">{{product.owner}}</a>
+                        <td><a href="{{product.pipeline_issue.remote_url}}">{{product.pipeline_issue.longname}}</a></td>
+                        <!-- TODO application urls should have redirecturl=... -->
+                        <td>{{product.application_list_urls|safe}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="sk-panel-content">
+            <p style="font-style:italic;">No products matching filter.</p>
+        </div>
+    {% endif %}
+    <div class="sk-help">
+        <p>There should be a product definition in crichton for just about everything that is
+        on the <a href="https://jira.dev.domain.com/browse/PIPELINE">PIPELINE</a>. Usually a
+        project manager or technical lead is the product owner, but this is not required.
+        While you can edit any product or add any product, you normally should only edit
+        your own products.</p>
+
+        <p>Applications are the pieces that your product is made up of. Applications
+        correspond roughly to rpm packages, but you can define applications before
+        they have packages, and vice versa.<a href="https://confluence.dev.domain.com/display/socom/crichton+user+guide#crichtonuserguide-Productsandapplications">Learn more about Products and applications</a>.</p>
+        
+        <p>If you cannot see a product you expect, maybe you need to
+            <a href="#tab-options" onclick="$('#tabs').tabs('select','#tab-options')">change your filter?</a></p>
+    </div>
+    <div id="sk-prod-tools" class="sk-tools">
+        <form action="/admin/prodmgmt/product/add/" method="get" style="display: inline-block">
+            <input type="hidden" name="redirecturl" value="/#tab-prodmgmt">
+            <button type="submit">Define New Product</button>
+        </form>
+        <form action="/admin/prodmgmt/application/add/" method="get" style="display: inline-block">
+            <input type="hidden" name="redirecturl" value="/#tab-prodmgmt">
+            <button type="submit">Define New Application</button>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("input:submit").button();
+        $("button").button();
+    });
+</script>

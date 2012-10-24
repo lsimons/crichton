@@ -1,0 +1,158 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+<h2>Filtering Options</h2>
+<form action="/admin/frontend/set_tab_options" method="POST">
+    <div class="sk-panel">
+        <div class="sk-panel-form">
+            {% csrf_token %}
+            {{ options_form.as_p }}
+        </div>
+        <div class="sk-help">
+            <p>The crichton UI filters all the content on all the tabs by these settings.
+            Change the filter level to show just those things you are interested in.
+            These options are saved in a session, so if you do not use crichton for a while
+            they may eventually reset to their defaults.</p>
+            
+            <p>The "show deleted" option is mostly a debugging option. It will show
+            content that's been marked as deleted in the database. Use this when you
+            accidentally deleted something and you need to find it again so you can
+            undelete it.</p>
+        </div>
+        <div class="sk-tools">
+            <input type="submit" value="Save options"/>
+        </div>
+    </div>
+</form>
+
+{% load myfrontend %}
+{% get_products_for_filter products %}
+<h2>Products Which Match Your Current Filter</h2>
+<div class="sk-panel">
+    {% if products %}
+        <table class="jtable">
+            <thead>
+                <tr>
+                    <th class="ui-state-default">Product</th>
+                    <th class="ui-state-default">Status</th>
+                    <th class="ui-state-default">Owner</th>
+                    <th class="ui-state-default">Jira</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for product in products %}
+                <tr class="sk-prod-owned" id="sk-prod-{{product.id}}">
+                    <td><strong><a href="{{product.get_absolute_url}}">{{product.display_name}}</a></strong></td>
+                    <td>{{product.status}}</td>
+                    <td><a href="{% if product.owner.email %}mailto:{{product.owner.email}}{% else %}{{product.owner.get_absolute_url}}{% endif %}">{{product.owner}}</a>
+                    <td><a href="{{product.pipeline_issue.remote_url}}">{{product.pipeline_issue.name}}</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="sk-panel-content">
+            <p style="font-style:italic;">No products matching filter.</p>
+        </div>
+    {% endif %}
+</div>
+
+{% load myfrontend %}
+{% get_followed_products followed_products %}
+{% get_unfollowed_products unfollowed_products %}
+
+<h2>You're Following These Products</h2>
+<div class="sk-panel">
+    {% if followed_products %}
+  <form action="/admin/frontend/del_followed_products" method="POST" id="frm_del_followed_products">{% csrf_token %}
+
+        <table class="jtable">
+            <thead>
+                <tr>
+                  <th class="ui-state-default">UnFollow?</th>
+                    <th class="ui-state-default">Product</th>
+                    <th class="ui-state-default">Owner</th>
+                    <th class="ui-state-default">Jira</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for product in followed_products %}
+              <tr class="sk-prod-followed" id="sk-prod-followed-{{product.id}}">
+                 <td><input id="sk-prod-{{product.id}}-followed" type="checkbox"
+                   name="del_followed_product_{{product.id}}" value='{{product.id}}'/>
+                 </td>
+                 <td><strong><a href="{{product.get_absolute_url}}">{{product.display_name}}</a></strong></td>
+                 <td><a href="{% if product.owner.email %}mailto:{{product.owner.email}}{% else %}{{product.owner.get_absolute_url}}{% endif %}">{{product.owner}}</a>
+                 <td><a href="{{product.pipeline_issue.remote_url}}">{{product.pipeline_issue.name}}</a></td>
+              </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="sk-tools">
+            <input type="submit" value="UnFollow Selected Products"/>
+        </div>
+   </form>        
+    {% else %}
+        <div class="sk-panel-content">
+            <p style="font-style:italic;">You aren't following any products.</p>
+        </div>
+    {% endif %}
+</div>
+
+<h2>You're Not Following These Products</h2>
+<div class="sk-panel">
+    {% if unfollowed_products %}
+  <form action="/admin/frontend/add_followed_products" method="POST" id="frm_follow_products">{% csrf_token %}
+
+        <table class="jtable">
+            <thead>
+                <tr>
+                  <th class="ui-state-default">Follow?</th>
+                    <th class="ui-state-default">Product</th>
+                    <th class="ui-state-default">Owner</th>
+                    <th class="ui-state-default">Jira</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for product in unfollowed_products %}
+              <tr class="sk-prod-followed" id="sk-prod-{{product.id}}">
+                 <td><input id="sk-prod-{{product.id}}-follow" type="checkbox"
+                   name="add_followed_product_{{product.id}}" value='{{product.id}}'/>
+                 </td>
+                 <td><strong><a href="{{product.get_absolute_url}}">{{product.display_name}}</a></strong></td>
+                 <td><a href="{% if product.owner.email %}mailto:{{product.owner.email}}{% else %}{{product.owner.get_absolute_url}}{% endif %}">{{product.owner}}</a>
+                 <td><a href="{{product.pipeline_issue.remote_url}}">{{product.pipeline_issue.name}}</a></td>
+              </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="sk-tools">
+            <input type="submit" value="Follow Selected Products"/>
+        </div>
+   </form>        
+    {% else %}
+        <div class="sk-panel-content">
+            <p style="font-style:italic;">Whoah, you are following everything!</p>
+        </div>
+    {% endif %}
+</div>  
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("input:submit").button();
+        $("button").button();
+    });
+</script>

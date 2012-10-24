@@ -1,0 +1,79 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+<!DOCTYPE html>
+<html lang="en-gb" xml:lang="en-gb">
+<head>
+<title>500 Internal Server Error</title>
+<link rel="stylesheet" type="text/css" href="/media/css/base.css" />
+<link href="/s/css/crichton.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" type="text/css" href="/media/css/dashboard.css" />
+<meta name="robots" content="NONE,NOARCHIVE" />
+</head>
+<body>
+
+<div id="container">
+    <div id="header">
+        <div id="branding">
+    <h1 id="site-name">
+        <img src="/s/img/blocks.png" width="84" height="24" style="vertical-align: text-middle; margin: 8px" alt="BBC" />
+        <img src="/s/img/crichton-logo-banner.png" height="36" style="vertical-align: text-middle" alt="crichton" />
+    </h1>
+        </div>
+
+    <div style="margin: 0; padding: .5em; padding: 2px 8px 3px 8px; border-top: 1px solid #ccc; color: #ffe; background-color: #444">
+        <a href="/">Home</a> |
+        <a href="/api/">API</a> |
+        <a href="https://confluence.dev.domain.com/x/pgzXAQ">User Guide</a> |
+        <a href="/admin/">Admin</a>
+    </div>
+
+    </div>
+    <!-- END Header -->
+
+    <!-- Content -->
+    <div id="content">
+        <p>
+            Sorry, something went very very wrong. If you're brave, try again.
+        </p>
+        
+        <p>
+            If you are less brave, get in touch with the webmasters and give them all your
+            love and support, because they probably need it right now. You may also want to
+            tell them about this issue you're having with the site.
+        </p>
+        
+        <p>
+            If you are the web master, you'd better go and look in the logs for details of
+            the error. You probably want to start with <code>web_error_log</code>. You could
+            change the config and set <code>DEBUG = True</code> in
+            <code>local_settings.py</code> if you'd like to see stack traces on web pages
+            rather than in logs.
+        </p>
+
+        <br class="clear" />
+    </div>
+    <!-- END Content -->
+
+    <div id="footer">
+        Something wrong? Try the <a href="/ping">ping page</a> to see if the server is ok.
+    </div>
+
+</div>
+<!-- END Container -->
+
+</body>
+</html>

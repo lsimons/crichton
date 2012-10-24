@@ -1,0 +1,5 @@
+include VERSION
+include MANIFEST.in
+global-include *.txt *.py *.xml *.cfg *.sh
+prune build
+prune dist
