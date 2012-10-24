@@ -1,0 +1,92 @@
+#!/bin/bash
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+
+PATH=/sbin:/usr/sbin:/usr/kerberos/bin:/usr/local/bin:/bin:/usr/bin
+VIF=<%= interface %>:0
+BACKUP_ROOT=/data/mysql/backup
+DUMP_OPTS="--databases" # for CREATE DATABASE
+
+fail() {
+  echo FATAL  $*
+  trace "restarting slave before exiting"
+  slavectl start || true
+  exit 1
+}
+
+trace() {
+  echo -e "[mysql-dump] $*" >&2
+}
+
+have_vip() {
+  ip addr | grep -q ${VIF}
+}
+
+trap fail ERR
+
+if [[ -z "${FORCE}" ]] && have_vip ; then
+  trace "this host has the VIP, doing nothing"
+  exit 0
+fi
+
+trace "this host is standby, proceeding"
+DATESTAMP=$( date '+%Y%m%d-%H%M' )
+trace "datestamp ${DATESTAMP}"
+BACKUP_DIR=${BACKUP_ROOT}/${DATESTAMP}
+if [[ -d ${BACKUP_DIR} ]] ; then
+  fail "${BACKUP_DIR} already exists, bailing"
+fi
+mkdir -p ${BACKUP_DIR} || fail "couldn't create ${BACKUP_DIR}"
+
+if [[ -z "${FORCE}" ]] ; then
+  trace "stopping slave"
+  slavectl stop
+fi
+
+# XXX check slave has caught up
+
+trace "listing databases"
+DBS=$( mysql --batch --execute 'SHOW DATABASES' | sed '1d' ; exit ${PIPESTATUS[0]} ) || fail "couldn't get list of databases"
+trace "databases:\n${DBS}"
+
+for DB in ${DBS} ; do 
+  DUMP=${BACKUP_DIR}/${DB}.sql
+  trace "dumping ${DB} to ${DUMP}"
+  mysqldump ${DUMP_OPTS} ${DB} > ${DUMP} || fail "couldn't dump ${DB}"
+done
+
+STATE=${BACKUP_DIR}/slave-state.env
+trace "storing slave state in ${STATE}"
+# tease out just the bits of slave status wer're interested in, and fudge them into shell env assisngs
+mysql --batch --execute 'SHOW SLAVE STATUS\G' | egrep '(Master_Log_File|Read_Master_Log_Pos|Master_Host|Exec_Master_Log_Pos)' | sed 's/: /=/' > ${STATE}
+if [[ ${PIPESTATUS[*]} != "0 0 0" ]] ; then
+  fail "couldn't obtain slave stutus"
+fi
+
+TAR=${BACKUP_DIR}.tar.gz
+trace "creating tarball at ${TAR}"
+tar -z -c -v -f ${TAR} -C ${BACKUP_ROOT} ${DATESTAMP} || fail "couldn't create tar"
+
+trace "cleaning up"
+rm -Rf ${BACKUP_DIR}
+
+# all done
+if [[ -z "${FORCE}" ]] ; then
+  trace "starting slave"
+  slavectl start
+fi
+exit 0

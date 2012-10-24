@@ -1,0 +1,103 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+a:link, a:visited {
+text-decoration: underline;
+}
+
+.dashboard #content {
+    width: auto;
+}
+
+.sk-panel {
+    border: 1px solid #ccc;
+    width: 100%;
+    background-color: white;
+    margin-bottom: 1em;
+}
+.sk-panel table {
+    width: 100%;
+}
+.sk-hidden {
+    display: none;
+}
+.sk-prod-owned {
+} 
+.sk-prod-followed {
+} 
+.sk-prod-unfollowed {
+    display: none;
+}
+.sk-help, .sk-panel-content, .sk-panel-form {
+    padding: .5em;
+}
+.sk-help {
+    font-size: 90%;
+}
+.sk-panel-form {
+    border-bottom: 1px solid #ccc;
+}
+
+.sk-help-toggle {
+    text-align: right;
+    font-size: 90%;
+}
+#sk-prod-toggle {
+    text-align: right;
+    font-size: 90%;
+    padding-right: .4em;
+    padding-top: .4em;
+}
+.sk-tools {
+    background-color: #eee;
+    border-top: 1px solid #ccc;
+    padding: .4em;
+}
+
+#sk-filter {
+    text-align: right;
+    font-size: 90%;
+    margin: .5em;
+}
+
+h2 {
+    margin-top: .2em;
+    margin-bottom: .1em;
+}
+
+#footer {
+    border-top: 1px solid #ccc;
+    margin-top: 10em;
+    padding: .4em;
+    text-align: center;
+    font-size: .8em;
+}
+
+input[readonly] {
+    background: #F0F0F0;
+}
+
+textarea[readonly] {
+    background: #F0F0F0;
+}
+
+/* SOCOM-203 the <li> styling inside /media/css/base.css interferes with the
+   autocomplete fields. To fix we set list-style-type back to none. Done here
+   instead of altering the downloaded jquery theme file because it might be 
+   overridden */ 
+.ui-autocomplete li {
+    list-style-type: none;
+}

@@ -1,0 +1,96 @@
+#!/bin/bash
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+
+PATH=/sbin:/usr/sbin:/usr/kerberos/bin:/usr/local/bin:/bin:/usr/bin
+VIF=<%= interface %>:0
+TMP_ROOT=/data/mysql/tmp
+
+fail() {
+  echo FATAL  $*
+  if [[ -n "${TMP_DIR}" ]] ; then
+    rm -Rf $TMP_DIR || true
+  fi
+  exit 1
+}
+
+trace() {
+  echo -e "[mysql-restore] $*" >&2
+}
+
+have_vip() {
+  ip addr | grep -q ${VIF}
+}
+
+trap fail ERR
+
+if have_vip ; then
+  trace "this host has the VIP, doing nothing"
+  exit 0
+fi
+trace "this host is standby, proceeding"
+
+trace "stopping slave"
+slavectl stop
+
+TAR=$1
+[[ -n "${TAR}" ]] || fail "usage: mysql-restore tarball"
+echo ${TAR} | grep -q '\.tar.gz$' || fail "${TAR} doesn't look like a tarball"
+if [[ ! -f "${TAR}" ]] ; then
+  fail "couldn't find tarball at ${TAR}"
+fi
+FILENAME=$( basename ${TAR} )
+DATESTAMP=${FILENAME/.tar.gz/}
+
+TMP_DIR=$( mktemp -d ${TMP_ROOT}/mysql-restore-XXXXXX ) || fail "couldn't create temporary directory at ${TMP_ROOT}"
+cd ${TMP_DIR} || fail "couldn't cd to ${TMP_DIR}"
+
+trace "extracting ${TAR} in ${TMP_DIR}"
+tar -z -x -v -f ${TAR} || fail "couldn't extract ${TAR}"
+cd ${DATESTAMP} || fail "tarball didn't contain expected subdirectory ${DATESTAMP}"
+
+DUMPS=$( ls *.sql )
+trace "found databases:\n${DUMPS}"
+
+for DUMP in ${DUMPS} ; do
+  DB=${DUMP/.sql/}
+  trace "loading ${DB} from ${DUMP}"
+  # dumps contain CREATE DATABASE IF NOT EXISTS
+  mysql < ${DUMP} || fail "couldn't load ${DB} from ${DUMP}" 
+done
+
+trace "flushing privileges"
+mysql --execute 'FLUSH PRIVILEGES'
+
+STATE=slave-state.env
+if [[ -f ${STATE} ]] ; then
+  trace "found slave state file, loading it"
+  . ${STATE}
+
+  echo "# To re-establish this host as a slave to the backup's previous master, run on this host:"
+  echo "sudo -H /usr/local/bin/slavectl set ${Master_Host} ${Master_Log_File} ${Read_Master_Log_Pos}"
+  echo "sudo -H /usr/local/bin/slavectl start"
+  echo "# You may also want to re-aim that master to slave off this host, also. See the output of:"
+  echo "sudo -H /usr/local/bin/masterctl show-slave-setup"
+fi
+
+trace "cleaning up"
+cd ${HOME}
+rm -Rf ${TMP_DIR}
+
+# all done
+exit 0

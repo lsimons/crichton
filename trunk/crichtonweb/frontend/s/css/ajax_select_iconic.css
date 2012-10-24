@@ -1,0 +1,90 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+/*
+File copied from ajax_selects (http://code.google.com/p/django-ajax-selects/)
+which is dual-licensed under the GPL and the MIT license. Use here is under
+the MIT license.
+Added by Leo Simons for the BBC.
+
+Copyright (c) 2009 Chris Sattinger. Copyright (c) 2011 BBC.
+All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+/*
+	most of the css that makes it look good is in the jquery.autocomplete.css that comes with the autocomplete plugin.
+	that formats the dropdown of search results.
+
+	one class is used on the html interface itself and that's the X that allows you to remove an item.
+	here is the styling I use.  add this to your main css file and season to taste.
+*/
+.iconic {
+	background: #fff;
+	color: #000;
+	border: 1px solid #ddd;
+	padding: 2px 4px;
+	font-weight: bold;
+	font-family: Courier;
+	text-decoration: none;
+}
+.iconic:hover {
+	text-decoration: none;
+	color: #fff;
+	background: #000;
+	cursor: pointer;
+}
+
+input.ac_loading {
+	background: #FFF url('/s/img/loading-indicator.gif') center center no-repeat;
+	background-position: right;
+}
+
+
+/* change the X to an image */
+.results_on_deck .iconic, .results_on_deck .iconic:hover {
+    float: left;
+    margin-left: 9.5em;
+    background: url('/media/img/admin/icon_deletelink.gif') center center no-repeat;
+    color: transparent;
+    border: 0;
+}
+
+.tabular .results_on_deck .iconic {
+    margin-left: 0em;
+}
+
+/* and each div in the result clears to start a new row */
+.results_on_deck > div {
+    clear: both;
+}
+

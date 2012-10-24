@@ -1,0 +1,125 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css"
+            href="{% load adminmedia %}{% admin_media_prefix %}css/dashboard.css" />
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script type="text/javascript" src="/s/js/django-jquery-csrf.js"></script>
+{% endblock %}
+
+{% block coltype %}{% endblock %}
+
+{% block bodyclass %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block content %}
+    <script type="text/javascript">
+        function open_admin(url) {
+            window.location = url + "?redirecturl=" + window.location.href;
+        }
+    </script>
+
+    <div id="sk-filter">
+        <em>Filter settings:</em>
+        <b>filter:</b> {{request.session.filter_level|default:"followed"}},
+        <b>show deleted:</b> {{request.session.show_deleted|default:"False"}}
+        (<a href="#tab-options" onclick="$('#tabs').tabs('select','#tab-options')">change</a>).
+    </div>
+
+    <div id="tabs" style="width: 100%">
+        <ul>
+            <li><a href="#tab-prodmgmt">Product Management</a></li>
+            <li><a href="#tab-release">Release Management</a></li>
+            <li><a href="#tab-build">Builds</a></li>
+            <li><a href="#tab-node">Nodes</a></li>
+            <li><a href="#tab-package">Packages</a></li>
+            <li><a href="#tab-options">Options</a></li>
+        </ul>
+
+        <div id="tab-prodmgmt"></div>
+
+        <div id="tab-release"></div>
+
+        <div id="tab-build"></div>
+
+        <div id="tab-node"></div>
+
+        <div id="tab-package"></div>
+
+        <div id="tab-options"></div>
+    </div>
+
+   <script type="text/javascript">
+        $(document).ready(function() {
+            $("input:submit").button();
+        });
+        function node_tab_loaded() {
+            // load list of nodes into select
+            $.ajax({
+                url: "/admin/frontend/list_node_names", //api/node/list/all.xml",
+                dataType: "json",
+                success: node_select_setup
+            });
+        }
+        function package_tab_loaded() {
+            // load list of packagess into select
+            $.ajax({
+                url: "/admin/frontend/list_packagenames", //api/package/list/all.xml",
+                dataType: "json",
+                success: package_select_setup
+            });
+        }
+        function fn_tabshow(event, ui) {
+            var myhash = ui.tab.hash;
+            if (myhash == "#tab-prodmgmt") {
+                $("#tab-prodmgmt").load("/admin/frontend/load_tab_prodmgmt");
+            } else if (myhash == "#tab-release") {
+                $("#tab-release").load("/admin/frontend/load_tab_release");
+            } else if (myhash == "#tab-build") {
+                $("#tab-build").load("/admin/frontend/load_tab_build");
+            } else if (myhash == "#tab-node") {
+                $("#tab-node").load("/admin/frontend/load_tab_node", node_tab_loaded);
+            } else if (myhash == "#tab-package") {
+                $("#tab-package").load("/admin/frontend/load_tab_package", package_tab_loaded);
+            } else if (myhash == "#tab-options") {
+                $("#tab-options").load("/admin/frontend/load_tab_options");
+            }
+            document.location.href = myhash; // jquery doesn't yet support history mgmt
+        }
+        $(document).ready(function(){
+            $('#tabs').tabs({
+                show: fn_tabshow
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block footer %}
+    <div id="footer">
+        Something wrong? Try the <a href="/ping">ping page</a> to see if the server is ok.
+    </div>
+{% endblock %}

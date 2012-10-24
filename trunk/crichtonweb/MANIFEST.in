@@ -1,0 +1,6 @@
+include VERSION
+include MANIFEST.in
+include local_settings.py.dist
+global-include *.txt *.py *.sh *.json *.html *.js *.css *.cfg *.wsgi *.png *.rb *.ico
+prune build
+prune dist

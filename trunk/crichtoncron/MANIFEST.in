@@ -1,0 +1,5 @@
+include VERSION
+include MANIFEST.in
+global-include *.txt *.py *.sh *.json *.html *.js *.css *.cfg *.wsgi *.png *.conf *.cron
+prune build
+prune dist

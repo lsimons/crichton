@@ -1,0 +1,60 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+    <link href="/s/css/jquery-ui-cupertino-1.8.12.css" type="text/css" rel="stylesheet" />
+    <link href="/s/css/ajax_select_iconic.css" rel="stylesheet" type="text/css" />
+    <link href="/s/css/crichton.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block extrahead %}
+    <link href="/s/img/favicon.ico" rel="icon" type="image/x-icon">
+    {% comment %}
+    We are loading our own jquery, also jquery_ui. Both django's jquery
+    and this one are accessible. See product_form.js for example.
+    {% endcomment %}
+    <script src="/s/js/jquery-1.6.1.min.js" type="text/javascript"></script>
+    <script src="/s/js/jquery-ui-1.8.12.min.js" type="text/javascript"></script>
+    <script src="/s/js/jquery.form-2.7.2.js" type="text/javascript"></script>
+    <script src="/s/js/ajax_select.js" type="text/javascript"></script>
+    {% block extendedextrahead %}{% endblock %}
+{% endblock %}
+
+{% block userlinks %}{% endblock %}
+
+{% block title %}{{ title }} | crichton{% endblock %}
+
+{% block branding %}
+    <h1 id="site-name">
+        <img src="/s/img/blocks.png" width="84" height="24" style="vertical-align: text-middle; margin: 8px" alt="BBC" />
+        <img src="/s/img/crichton-logo-banner.png" height="36" style="vertical-align: text-middle" alt="crichton" />
+    </h1>
+    {% ifnotequal request.META.SERVER_NAME 'crichton.dev.domain.com' %}
+        <h1>You are on a DEV instance of crichton. The production system is at <a href="https://crichton.dev.domain.com/">https://crichton.dev.domain.com/</a></h1>
+    {% endifnotequal %}
+{% endblock %}
+
+{% block nav-global %}
+    <div style="margin: 0; padding: .5em; padding: 2px 8px 3px 8px; border-top: 1px solid #ccc; color: #ffe; background-color: #444">
+        <a href="/">Home</a> |
+        <a href="/api/">API</a> |
+        <a href="https://confluence.dev.domain.com/x/pgzXAQ">User Guide</a> |
+        <a href="/admin/">Admin</a>
+    </div>
+{% endblock %}

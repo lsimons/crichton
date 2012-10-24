@@ -1,0 +1,52 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+{% extends "admin/change_form.html" %}
+
+{% block extendedextrahead %}
+    {% load release_tags %}
+    {% get_custom_date_fields custom_dates %}
+    {% if custom_dates %}
+        <script type="text/javascript">
+            $(function() {
+            {% for cdate in custom_dates %}
+                $('#id_{{ cdate.name }}_0').datepicker({ dateFormat: 'dd/M/y' });
+            {% endfor %}
+            });
+        </script>
+    {% endif %}
+{% endblock %}
+
+{% block form_top %}
+    {% get_jira_settings settings %}
+    {% if change %}
+        <!-- <p>These should be the deployment instructions for the OPS jira ticket:</p>
+<pre>
+fab release_deploy:{{original.release.product.name}}@{{original.release.version}}:{{original.environment.name}}
+</pre> -->
+        {% if not original.ops_issue %}
+        <!-- <p><a href="https://jira.dev.domain.com/secure/CreateIssueDetails.jspa?pid=10030&issuetype=18&summary=Deploy {{original.release.product.name}} {{original.release.version}} to {{original.environment.name}}&customfield_10274=fab release_deploy:{{original.release.product.name}}@{{original.release.version}}:{{original.environment.name}}">Start creating the OPS Change jira for this deployment request</a></p> -->
+            <p>PLEASE NOTE: Submitting this form with a blank Ops Issue field will create a new change ticket in Jira.</p>
+        {% else %}
+        <!-- <p>Go to OPS jira issue: <a href="https://jira.dev.domain.com/{{original.ops_issue.name}}">{{original.ops_issue.name}}</a></p> -->
+        <p>Go to OPS jira issue: <a href="{{settings.JIRA_BASE_URL}}{{original.ops_issue.name}}">{{original.ops_issue.name}}</a></p>
+        {% endif %}
+    {% else %}
+        <p>PLEASE NOTE: Submitting this form with a blank Ops Issue field will create a new change ticket in Jira.</p>
+
+        <p>PLEASE ALSO NOTE: once you have created a deployment request for a release, you can no longer modify that release.</p>
+    {% endif %}
+{% endblock %}

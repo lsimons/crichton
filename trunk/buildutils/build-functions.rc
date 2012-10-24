@@ -1,0 +1,244 @@
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+# various utility functions used to glue build stuff together
+
+
+# we need to know if we are on mac os x because if so we won't have
+# gnused but instead have bsdsed, which means running sed -E
+# instead of sed -r. Grr.
+platform='unknown'
+unamestr=`uname`
+if [[ "$unamestr" == 'Linux' ]]; then
+    platform='linux'
+elif [[ "$unamestr" == 'FreeBSD' ]]; then
+    platform='freebsd'
+elif [[ "$unamestr" == 'Darwin' ]]; then
+    platform='darwin'
+fi
+
+function die {
+    echo "$@" 1>&2
+    exit 1
+}
+
+function warn {
+    echo WARNING: "$@" 1>&2
+}
+
+function clean_previous_builds {
+    BASEDIR=${1:-$PWD}
+
+    OLDPWD="$PWD"
+    cd "$BASEDIR"
+    for d in RPMS SRPMS build dist; do
+        [[ -d $d ]] && find $d -delete
+    done
+    unknownfiles=$(svn status | egrep '^\?' | sed -e 's/^\? *//g')
+    for f in $unknownfiles; do
+        [[ -f $f ]] && rm -f $f
+        [[ -d $f ]] && find $f -delete
+    done
+    cd "$OLDPWD"
+}
+
+function apply_patches {
+    # takes all patches from ../patches and applies them
+    [[ ! -d "../patches" ]] && return
+    
+    for p in `ls ../patches | sort`; do
+        patch -p0 < ../patches/$p
+    done
+}
+
+function set_release_version {
+    # reads ../RELEASE_VERSION and writes it to setup.cfg
+    # as the release variable under the [bdist_rpm] section
+    
+    [[ -f "../RELEASE_VERSION" ]] || die "No RELEASE_VERSION found."
+    
+    v=$(cat ../RELEASE_VERSION)
+    echo "v=$v"
+
+    if [[ -f setup.cfg ]]; then
+        set +e
+        release_info=$(cat setup.cfg | grep release)
+        set -e
+        if [[ -z "$releaseinfo" ]]; then
+            set +e
+            bdist_rpm=$(cat setup.cfg | grep '\[bdist_rpm\]')
+            set -e
+            echo "bdist_rpm=$bdist_rpm"
+            if [[ -z "$bdist_rpm" ]]; then
+                cat >>setup.cfg <<END
+[bdist_rpm]
+release = $v
+END
+            else
+                sedops="-r"
+                if [[ "$platform" == "darwin" ]]; then
+                    sedops="-E"
+                fi
+                cat setup.cfg | sed $sedops "s|^\\[bdist_rpm\\] *\$|\\[bdist_rpm\\]\\
+release = $v\\
+|" > setup.cfg.new
+                echo "made setup.cfg.new"
+                mv setup.cfg.new setup.cfg
+            fi
+        else
+            cat setup.cfg | sed_r -e "s/^release *=.*\$/release = $v/$" > setup.cfg.new
+            mv setup.cfg.new setup.cfg
+        fi
+    else
+        cat >setup.cfg <<END
+[bdist_rpm]
+release = $v
+END
+    fi
+    
+    echo "setup.cfg:"
+    echo "----"
+    cat setup.cfg
+    echo "----"
+}
+
+function check_buildable {
+    # check for CentOS/Redhat 5.x
+    [[ -f "/etc/redhat-release" && `cat /etc/redhat-release` =~ "release 5" ]] ||\
+        warn "Not running on CentoS/RHEL 5.x? This will be a non-standard build."
+
+    # check for rpmbuild
+    [[ `which rpmbuild` != '' && `rpmbuild --version` =~ (4.[456789]|5\.[23456789]) ]] ||\
+        die "No recent rpmbuild? Try 'yum install rpm-build' or on mac grab a binary
+    install from http://rpm5.org/files/rpm/rpm-5.2/BINARY/RPM5-20090707.dmg"
+}
+
+function collect_rpms {
+    # takes a directory and hunts for RPMS inside of it and
+    # stores those in a subdirectory named
+    #   ./RPMS
+    #
+    # if not directory is provided $PWD is used
+    BASEDIR=${1:-$PWD}
+    
+    mkdir -p RPMS
+    
+    find $BASEDIR -name '*.rpm' \
+            -not -path "$BASEDIR/RPMS/*" \
+            -not -path "$BASEDIR/SRPMS/*" \
+            -exec cp \{\} $BASEDIR/RPMS \;
+}
+
+function structure_rpms {
+    # takes a directory that has a subdirectory ./RPMS which
+    # contains a bunch of RPMs, and turns that into a structure
+    #   ./RPMS
+    #     ./noarch
+    #     ./i386
+    #     ./x64_64
+    #   ./SRPMS
+    # with the rpms in the right directories
+    #
+    # if no base directory is given $PWD is used
+    BASEDIR=${1:-$PWD}
+    mkdir -p $BASEDIR/RPMS/noarch
+    mkdir -p $BASEDIR/RPMS/i386
+    mkdir -p $BASEDIR/RPMS/x86_64
+    mkdir -p $BASEDIR/SRPMS
+
+    HAVE_SRC=$(find $BASEDIR/RPMS -type f -name '*.src.rpm' -maxdepth 1)
+    [[ -n "$HAVE_SRC" ]] && mv $BASEDIR/RPMS/*.src.rpm $BASEDIR/SRPMS/
+
+    HAVE_NOARCH=$(find $BASEDIR/RPMS -type f -name '*.noarch.rpm' -maxdepth 1)
+    [[ -n "$HAVE_NOARCH" ]] && mv $BASEDIR/RPMS/*.noarch.rpm $BASEDIR/RPMS/noarch/
+
+    HAVE_I386=$(find $BASEDIR/RPMS -type f -name '*.i386.rpm' -maxdepth 1)
+    [[ -n "$HAVE_I386" ]] && mv $BASEDIR/RPMS/*.i386.rpm $BASEDIR/RPMS/i386/
+
+    HAVE_X86_64=$(find $BASEDIR/RPMS -type f -name '*.x86_64.rpm' -maxdepth 1)
+    [[ -n "$HAVE_X86_64" ]] && mv $BASEDIR/RPMS/*.x86_64.rpm $BASEDIR/RPMS/x86_64/
+
+    rm -f $BASEDIR/RPMS/*.rpm
+}
+
+function publish_rpms {
+    # takes a directory that has subdirectories named
+    #   ./RPMS
+    #       ./{arch}
+    #   ./SRPMS
+    # with RPMs inside them, and syncs their contents to the yum repo
+    # for the specified environment
+    #
+    # if no directory is provided $PWD is used
+    # if no environment is provided $TARGET_ENV is used
+    # if the provided environment is "dev" we interpret it as "int"
+    
+    # the below is based on and should remain compatible with
+    #   https://repo.domain.comtools/development/trunk
+    #           /SOURCES/bbc-development-tools/data/tools/rpm/create
+    
+    BASEDIR=${1:-$PWD}
+    TARGET_ENVS=${2:-$TARGET_ENV}
+    
+    [[ -d "$BASEDIR/RPMS" ]] || die "No RPM directory $BASEDIR/RPMS"
+    [[ -d "$BASEDIR/SRPMS" ]] || die "No SRPM directory $BASEDIR/SRPMS"
+
+    echo "Publishing RPMs..."
+    echo "HOSTNAME=$HOSTNAME"
+    echo "BASEDIR=$BASEDIR"
+
+    OLD_IFS="$IFS"
+    IFS=","
+    for TARGET_ENV in $TARGET_ENVS; do
+        echo "TARGET_ENV=$TARGET_ENV"
+
+        if [[ "$TARGET_ENV" == "dev" ]]; then
+            TARGET_ENV="int"
+        fi
+        REPO_PATH="ci002.forge.local:/data/ci.${TARGET_ENV}.domain.local/repo/"
+        SRPM_PATH="ci002.forge.local:/data/yum.dev.forge.local/docroot/src/"
+        if [[ "$HOSTNAME" == "ci002" ]]; then
+            REPO_PATH="/data/ci.${TARGET_ENV}.domain.local/repo/"
+            SRPM_PATH="/data/yum.dev.forge.local/docroot/src/"
+        fi
+        echo REPO_PATH=$REPO_PATH
+        echo SRPM_PATH=$SRPM_PATH
+        echo
+
+        echo "Publishing srpms to $SRPM_PATH"
+        rsync -av $BASEDIR/SRPMS/ $SRPM_PATH \
+                    || die "Failed to copy SRPM packages to ${SRPM_PATH}"
+        echo
+
+        echo "Publishing rpms to $REPO_PATH, since TARGET_ENV=$TARGET_ENV"
+        rsync -av $BASEDIR/RPMS/ $REPO_PATH \
+                    || die "Failed to copy RPM packages to ${TARGET_ENV} repo"
+        echo
+
+        echo "Reindexing yum repo"
+        if [[ "$HOSTNAME" == "ci002" ]]; then
+            /data/tools/yum/reindex
+        else
+            ssh -l builder ci002.forge.local \
+                    "TARGET_ENV=${TARGET_ENV} /data/tools/yum/reindex \
+                    || echo \"FATAL deploy error! - Unable to reindex repository\" \
+                    || exit 1"
+        fi
+        echo
+    done
+    IFS="$OLD_IFS"
+
+}

@@ -1,0 +1,45 @@
+#!/bin/sh
+# Crichton, Admirable Source Configuration Management
+# Copyright 2012 British Broadcasting Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+
+# Is the site enabled?
+#
+# Taken from bbc-remote-deploy rpm with minor modification:
+# 0 or 1 is _printed_ instead of being a return code, since Fabric will 
+# abort if a non-zero exit code is encountered
+#
+
+SITE_NAME=$1
+DOMAIN=$2
+
+fail() {
+  echo FATAL - is-site-enabled failed! $@
+  exit 2
+}
+trap fail ERR
+
+if [ -z "${SITE_NAME}" ] || [ -z "${DOMAIN}" ]; then
+  fail "usage: is-site-enabled site domain"
+fi
+
+if [ -L "/etc/httpd/conf.d/webapps/${DOMAIN}/${SITE_NAME}.conf" ]; then
+    echo 1
+else
+    echo 0
+fi
+exit 0
+
